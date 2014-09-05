@@ -6,6 +6,26 @@ from optparse import OptionParser
 
 import xattr
 
+def convert(string):
+    tmp_string = string
+    if (string[0] == '0' and
+        (string[1] == 's' or
+         string[1] == 'S')):
+        tmp_string = string.strip('%s%s' %
+                                  (string[0],
+                                   string[1]))
+        return tmp_string.decode('base64')
+
+    if (string[0] == '0' and
+        (string[1] == 'x' or
+         string[1] == 'X')):
+        tmp_string = string.split('%s%s' %
+                                  (string[0],
+                                   string[1]))
+        return tmp_string[1].decode('hex')
+
+    return tmp_string
+
 if __name__ == '__main__':
     usage = "usage: %prog [-n name] [-v value] [-x name]"
     parser = OptionParser(usage=usage)
@@ -45,7 +65,7 @@ if __name__ == '__main__':
 
     if option.name and option.value:
         try:
-            xattr.setxattr(args[0], option.name, option.value)
+            xattr.setxattr(args[0], option.name, convert(option.value))
         except Exception as err:
             print (err)
             sys.exit(1)

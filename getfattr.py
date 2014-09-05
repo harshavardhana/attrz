@@ -3,9 +3,51 @@
 import os
 import sys
 from optparse import OptionParser
-import base64
 
 import xattr
+
+def handle_textencoding(attr):
+    ### required for Python's handling of NULL strings.
+    attr_null_replace = (attr.encode('hex').decode('hex')).replace('\x00',
+                                                                   '\\000')
+    return attr_null_replace
+
+def getfattr(path, option):
+    attr = xattr.getxattr(path, option.name)
+    encoded_attr = attr
+
+    if option.encoding == "text":
+        ## special case handle it.
+        encoded_attr = handle_textencoding(attr)
+    else:
+        encoded_attr = attr.encode(option.encoding)
+
+    if option.onlyvalues:
+        print (encoded_attr)
+        return
+
+    print_getfattr (path, option, encoded_attr)
+    return
+
+def print_getfattr (path, option, encoded_attr=None):
+    if encoded_attr:
+        if option.encoding == "hex":
+            print ("%s=0x%s" % (option.name, encoded_attr))
+        elif option.encoding == "base64":
+            print ("%s=0s%s" % (option.name, encoded_attr))
+        else:
+            print ("%s=\"%s\"" % (option.name, encoded_attr))
+    else:
+        print option.name
+
+    return
+
+def print_header (path, absnames):
+    if absnames:
+        print ("# file: %s" % path)
+    else:
+        print ("getfattr: Removing leading '/' from absolute path names")
+        print ("# file: %s" % path[1:])
 
 if __name__ == '__main__':
     usage = "usage: %prog [-n name|-d] [-e en] [-m pattern] path...."
@@ -17,11 +59,13 @@ if __name__ == '__main__':
                       help="Dump the values of all extended attributes"
                       " associated with pathname.")
     parser.add_option("-e", action="store", dest="encoding", type="string",
-                      help="Encode values after retrieving them. Valid values"
-                      " of [en] are `text`, `hex`, and `base64`. Values encoded"
-                      " as text strings are enclosed in double quotes (\"),"
-                      " while strings encoded as hexidecimal and base64 are"
-                      " prefixed with 0x and 0s, respectively.")
+                      default="base64",
+                      help="Encode values after retrieving"
+                      " them. Valid values of [en] are `text`, `hex`,"
+                      " and `base64`. Values encoded as text strings are"
+                      " enclosed in double quotes (\"), while strings"
+                      " encoded as hexidecimal and base64 are prefixed with"
+                      " 0x and 0s, respectively.")
     parser.add_option("-m", action="store", dest="pattern", type="string",
                       help="Only include attributes with names matching the"
                       " regular expression pattern. The default value for"
@@ -36,34 +80,54 @@ if __name__ == '__main__':
                       help="Dump out the raw extended attribute value(s)"
                       " without encoding them.")
 
-    (option,args) = parser.parse_args()
+    (option, args) = parser.parse_args()
     if not args:
-        print ("Usage: getfattr [-hRLP] [-n name|-d] [-e en] [-m pattern] path...")
+        print ("Usage: getfattr [-hRLP] [-n name|-d] [-e en] [-m pattern]"
+               " path...")
         print ("Try `getfattr --help' for more information.")
-        sys.exit(1)
-
-    if option.encoding and option.onlyvalues:
-        print ("-e/encoding and --only-values are mutually exclusive...")
         sys.exit(1)
 
     if option.dump and option.name:
         print ("-d and -n are mutually exclusive...")
         sys.exit(1)
 
+    if option.pattern and option.name:
+        print ("-m and -n are mutually exclusive...")
+        sys.exit(1)
+
+    if option.encoding:
+        if (not (option.encoding.strip() == "hex" or
+                 option.encoding.strip() == "base64" or
+                 option.encoding.strip() == "text")):
+            print ("unrecognized encoding parameter... %s, please use"
+                   " `text`, `base64` or `hex`" % option.encoding)
+            sys.exit(1)
+
     args[0] = os.path.abspath(args[0])
 
     if option.name:
+        print_header(args[0], option.absnames)
         try:
-            attr = xattr.getxattr(args[0], option.name)
-            print (attr.encode('hex'))
-        except Exception as err:
+            getfattr(args[0], option)
+        except KeyError as err:
+            print ("Invalid key %s" % err)
+            sys.exit(1)
+        except IOError as err:
             print (err)
             sys.exit(1)
 
-    if option.dump:
+    if option.pattern:
+        print_header(args[0], option.absnames)
         try:
             xattrs = xattr.listxattr(args[0])
-            print (xattrs)
-        except Exception as err:
+            for attr in xattrs:
+                if option.dump:
+                    option.name = attr.encode('utf-8')
+                    getfattr(args[0], option)
+                else:
+                    option.name = attr.encode('utf-8')
+                    print_getfattr(args[0], option, None)
+
+        except IOError as err:
             print (err)
             sys.exit(1)
