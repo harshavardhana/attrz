@@ -3,3 +3,4 @@
 build
 attr-utils.egg-info
 dist
+.eggs

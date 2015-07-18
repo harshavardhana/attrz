@@ -43,6 +43,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    packages=find_packages(),
+    scripts=['getfattr.py', 'setfattr.py'],
     long_description=long_description,
 )
