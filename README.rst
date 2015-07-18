@@ -1,4 +1,4 @@
-Attr utils
+attr-utils
 ======
 
 attr-utils - python alternative for getfattr/setfattr tools for different platforms
