@@ -1,7 +1,7 @@
-attr-utils
+attrz
 ======
 
-attr-utils - python alternative for getfattr/setfattr tools for different platforms
+attrz - python alternative for getfattr/setfattr tools for different platforms
 
     Copyright (C) 2015 Harshavardhana
 

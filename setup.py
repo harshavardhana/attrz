@@ -1,4 +1,4 @@
-# Attr utils, (C) 2015 Harshavardhana.
+# attrz, (C) 2015 Harshavardhana.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,18 +17,17 @@ from setuptools import setup, find_packages
 with open('README.rst') as file:
     long_description = file.read()
 
-version = '0.1.0'
+version = '0.1.1'
 
 setup(
-    name='attr-utils',
+    name='attrz',
     version=version,
-    description='attr-utils in Python, getfattr/setfattr cross platform implementations',
+    description='attrz in Python, getfattr/setfattr cross platform implementations',
     author='Harshavardhana',
     author_email='harsha@harshavardhana.net',
     install_requires=['xattr'],
-    url='https://github.com/harshavardhana/attr-utils.git',
+    url='https://github.com/harshavardhana/attrz.git',
     license='Apache License 2.0',
-    platforms=['any'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -45,4 +44,6 @@ setup(
     ],
     scripts=['getfattr.py', 'setfattr.py'],
     long_description=long_description,
+    package_data={'': ['LICENSE', 'README.rst']},
+    include_package_data=True,
 )
