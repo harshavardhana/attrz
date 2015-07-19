@@ -1,6 +1,6 @@
 *.pyc
 *~
 build
-attr-utils.egg-info
+*.egg-info
 dist
 .eggs
